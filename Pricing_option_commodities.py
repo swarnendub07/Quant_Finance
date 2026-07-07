@@ -182,7 +182,7 @@ def mainCalculation():
     plt.plot(range(0,N), boundary, linewidth=0.8, label="seasonal $\delta$")
     plt.xlabel("Time step i")
     plt.ylabel("Early exercise boundary")
-    plt.title("Early exercise boundary with changing $\delta$")
+    plt.title("Early exercise boundary: fixed vs seasonal $\delta$")
     plt.legend()
     
     # these values are returned only to check values at all the binomial tree nodes
