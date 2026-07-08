@@ -28,14 +28,14 @@ def COS_density(x, N, a, b, S0, gamma, T):
     
     density=np.zeros(len(x))
     
-    # calculating density as a function of x, for a paricular T
+    # recovering the density function of S(T)
     for i in range(0,len(x)):
 
         density[i]=np.sum(Fk*np.cos(k*np.pi*(x[i]-a)/(b-a)))
 
     return density
 
-## 
+## Simulate Monte carlo paths to return the distribution of S(T)
 def MonteCarloPaths(gamma, T, S0, NoOfPaths, NoOfSteps):
     
     Z=np.random.normal(0,1,[NoOfPaths, NoOfSteps])
@@ -69,15 +69,15 @@ def mainCalculation():
     NoOfPaths=10000
     NoOfSteps=100
     
+    # plot the density of S(T) recovered from the characteristic function and 
+    # the density from the Monte Carlo simulations
     density=COS_density(x, N, a, b, S0, gamma, T)
-    
     MCdensity= MonteCarloPaths(gamma, T, S0, NoOfPaths, NoOfSteps)
     
     plt.figure()
     plt.plot(x,density)
     plt.xlabel("S")
     plt.ylabel("Density") 
-    
    
     plt.hist(MCdensity, bins=100, density=True, alpha=0.6)
     plt.xlabel("S")
