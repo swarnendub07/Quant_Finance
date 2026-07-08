@@ -25,7 +25,9 @@ def Market_PutOptionValueAnalytic(K, r, T, S, t ):
     
     V=K*np.exp(-r*(T-t))*st.norm.cdf(-d2)- S*st.norm.cdf(-d1)
     
-    return V
+    impliedVol_direct=np.sqrt(1/T*v)
+    
+    return V, impliedVol_direct
 
 def GMBPaths(r, T, t, NoOfPaths, NoOfSteps, S0):
     ## put option value calculated using simulations with the time-dependent sigma
@@ -79,8 +81,8 @@ def ImpliedVolatility( K, r, T, sigma, S0, V_Market):
     
     error = 1 # initial error
     
-    optPrice= lambda sigma: BS_PutOptionValue(K, r, tau, sigma, S0)
-    vega= lambda sigma: dV_dsigma(S0, K, sigma, tau, r)
+    optPrice= lambda sigma: BS_PutOptionValue(K, r, T, sigma, S0)
+    vega= lambda sigma: dV_dsigma(S0, K, sigma, T, r)
 
     while error>1e-6:
 
@@ -102,7 +104,7 @@ def ImpliedVolatility( K, r, T, sigma, S0, V_Market):
 
 T=6
 t=0
-tau=T-t
+
 S0=1 
 r=0.05
 K=1.7
@@ -139,7 +141,7 @@ for i in range(len(K_values)):
     V_MarketNumeric=np.exp(-r*(T-t))*np.mean(PayOff)    
     ImpliedVol[i] =ImpliedVolatility( K_values[i], r, T, sigmaInit, S0, V_MarketNumeric)
     
-    V_MarketAnalytic=Market_PutOptionValueAnalytic(K_values[i], r, T, S0, t )
+    V_MarketAnalytic, _=Market_PutOptionValueAnalytic(K_values[i], r, T, S0, t )
     ImpliedVol_A[i] =ImpliedVolatility( K_values[i], r, T, sigmaInit, S0, V_MarketAnalytic)
 
 plt.figure()
@@ -164,6 +166,7 @@ plt.ylim([55, 60])
 T_values=np.linspace(1, 6, 21)
 ImpliedVol_TK=np.zeros([len(T_values), len(K_values)])
 ImpliedVol_A_TK=np.zeros([len(T_values), len(K_values)])
+ImpliedVol_direct=np.zeros([len(T_values), len(K_values)])
 
 for i in range(len(T_values)):
     
@@ -178,12 +181,16 @@ for i in range(len(T_values)):
         V_MarketNumeric=np.exp(-r*(T_values[i]-t))*np.mean(PayOff)    
         ImpliedVol_TK[i,j] =ImpliedVolatility( K_values[j], r, T_values[i], sigmaInit, S0, V_MarketNumeric)
         
-        V_MarketAnalytic=Market_PutOptionValueAnalytic(K_values[j], r, T_values[i], S0, t )
+        V_MarketAnalytic,_=Market_PutOptionValueAnalytic(K_values[j], r, T_values[i], S0, t )
         ImpliedVol_A_TK[i,j] =ImpliedVolatility( K_values[j], r, T_values[i], sigmaInit, S0, V_MarketAnalytic)
+        
+        _,ImpliedVol_direct[i,j]=Market_PutOptionValueAnalytic(K_values[j], r, T_values[i], S0, t )
+        
 
 
 # plot T vs implied volatility        
 j=16 # K=1.7
+#j=7 # K=1.025
 
 plt.figure()
 plt.plot(T_values, ImpliedVol_TK[:,16]*100)
@@ -194,11 +201,13 @@ plt.ylim([50, 60])
 plt.show()
 
 plt.figure()
-plt.plot(T_values, ImpliedVol_A_TK[:,16]*100)
+plt.plot(T_values, ImpliedVol_A_TK[:,16]*100, label="Recovered implied volatility")
+plt.plot(T_values, ImpliedVol_direct[:,16]*100, '--',label="$\sqrt{v(T)/T}$") ## sanity check
 plt.title("Market data from Analytic expression")
 plt.xlabel("Time to maturity (T)")
 plt.ylabel("Implied volatility (%)")
 plt.ylim([50, 60])
+plt.legend()
 plt.show()
 
 
